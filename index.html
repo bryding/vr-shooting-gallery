@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>VR Beach Shooting Gallery</title>
+
+  <!-- A-Frame: the free VR toolkit that does all the hard 3D + headset work. -->
+  <script src="https://aframe.io/releases/1.6.0/aframe.min.js"></script>
+
+  <!-- Our own game code: sounds, gun, birds, targets and score. -->
+  <script src="js/game.js"></script>
+</head>
+<body>
+  <!-- The whole VR world. A-Frame adds the "Enter VR" button by itself, so on
+       the Quest you just tap it to put the game on your face. -->
+  <a-scene shooting-range background="color: #bfe7f5">
+
+    <!-- ===== LIGHTS ===== -->
+    <a-entity light="type: ambient; intensity: 0.9"></a-entity>
+    <a-entity light="type: directional; intensity: 0.6" position="3 5 1"></a-entity>
+
+    <!-- ===== SKY, SUN, SAND & OCEAN ===== -->
+    <a-sky color="#bfe7f5"></a-sky>
+    <a-sphere position="-7 9 -18" radius="1.6" color="#fff3b0"
+              material="emissive: #fff3b0; emissiveIntensity: 0.8"></a-sphere>
+
+    <!-- sandy beach all around -->
+    <a-circle rotation="-90 0 0" radius="60" color="#ecdca6"></a-circle>
+    <!-- the ocean: a big ring of blue past the sand, gently bobbing like waves -->
+    <a-ring rotation="-90 0 0" radius-inner="16" radius-outer="80" position="0 0.02 0" color="#1f7fb8"
+            animation="property: position; to: 0 0.12 0; dir: alternate; loop: true; dur: 2600; easing: easeInOutSine"></a-ring>
+    <!-- a lighter strip of foam where the water meets the sand -->
+    <a-ring rotation="-90 0 0" radius-inner="15.4" radius-outer="16.4" position="0 0.03 0" color="#bfe9ef"></a-ring>
+
+    <!-- ===== THE CABANA (a tiki hut you stand in) ===== -->
+    <!-- wooden deck/platform under your feet -->
+    <a-box position="0 0.06 0" width="5" height="0.12" depth="5" color="#b5814e"></a-box>
+    <!-- 4 corner posts -->
+    <a-box position="2.2 1.3 -2.2"  width="0.16" height="2.6" depth="0.16" color="#7a5230"></a-box>
+    <a-box position="-2.2 1.3 -2.2" width="0.16" height="2.6" depth="0.16" color="#7a5230"></a-box>
+    <a-box position="2.2 1.3 2.2"   width="0.16" height="2.6" depth="0.16" color="#7a5230"></a-box>
+    <a-box position="-2.2 1.3 2.2"  width="0.16" height="2.6" depth="0.16" color="#7a5230"></a-box>
+    <!-- thatched roof (a 4-sided pyramid = a cone with 4 sides) -->
+    <a-cone position="0 3.1 0" radius-bottom="3.9" radius-top="0" height="1.3"
+            segments-radial="4" rotation="0 45 0" color="#cba24c"></a-cone>
+
+    <!-- ===== PALM TREES ===== -->
+    <a-entity position="-6 0 -2">
+      <a-cylinder radius="0.16" height="3.2" position="0 1.6 0" color="#9c6b3f"></a-cylinder>
+      <a-sphere position="0 3.2 0" radius="0.95" color="#2f8f3a" scale="1 0.5 1"></a-sphere>
+    </a-entity>
+    <a-entity position="6.5 0 -4" rotation="0 30 0">
+      <a-cylinder radius="0.18" height="3.6" position="0 1.8 0" color="#9c6b3f"></a-cylinder>
+      <a-sphere position="0 3.6 0" radius="1.05" color="#33a043" scale="1 0.5 1"></a-sphere>
+    </a-entity>
+
+    <!-- ===== THE GUN STAND (where the gun waits for you to grab it) ===== -->
+    <a-box position="0.4 0.45 -0.7" width="0.4" height="0.78" depth="0.35" color="#8a5a3b"></a-box>
+    <a-entity id="gunOnStand" gun-model position="0.4 0.92 -0.7" rotation="-12 0 0"></a-entity>
+
+    <!-- ===== FLOATING TEXT (score, ammo, hint) ===== -->
+    <a-text id="scoreText" value="Score: 0" align="center" position="0 4.0 -6" width="14" color="#ffffff"></a-text>
+    <a-text id="ammoText"  value="Ammo: 6 / 6" align="center" position="0 3.5 -6" width="11" color="#ffe48a"></a-text>
+    <a-text id="hintText"  value="Squeeze the GRIP button to grab the gun!" align="center"
+            position="0 0.7 -4" width="6" color="#ffffff"></a-text>
+
+    <!-- ===== THE PLAYER (head + two hands move together) ===== -->
+    <a-entity id="rig" position="0 0 0">
+      <a-camera position="0 1.6 0"></a-camera>
+
+      <!-- RIGHT HAND = the gun hand.
+           laser-controls = controller + a laser sight beam.
+           raycaster = the beam only notices things tagged .target. -->
+      <a-entity id="gun"
+                laser-controls="hand: right"
+                raycaster="objects: .target; far: 60"
+                line="color: #ff3b3b; opacity: 0.55">
+        <!-- the gun you hold (hidden until you grab it with the grip) -->
+        <a-entity id="gunInHand" gun-model visible="false" position="0 -0.02 -0.02"></a-entity>
+        <!-- the muzzle flash, off until you fire -->
+        <a-sphere id="muzzle" visible="false" position="0 0 -0.34" radius="0.05"
+                  color="#ffd34d" material="emissive: #ffae00; emissiveIntensity: 1"></a-sphere>
+      </a-entity>
+
+      <!-- LEFT HAND: just shows the controller -->
+      <a-entity id="leftHand" laser-controls="hand: left"></a-entity>
+    </a-entity>
+
+    <!-- DESKTOP testing only: a mouse cursor so you can CLICK targets on the
+         computer before trying it in the headset. (Does nothing in VR.) -->
+    <a-entity id="mouseCursor" cursor="rayOrigin: mouse" raycaster="objects: .target"></a-entity>
+
+  </a-scene>
+</body>
+</html>
