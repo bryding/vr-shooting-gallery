@@ -161,11 +161,20 @@ AFRAME.registerComponent('gun-model', {
       this.el.appendChild(e);
       return e;
     };
-    // body, barrel, handle, sight — the gun "points" forward (toward -z).
-    make('a-box', { color: '#2b2f33', width: 0.06, height: 0.09, depth: 0.2, position: '0 0 -0.02' });
-    make('a-box', { color: '#1a1d20', width: 0.035, height: 0.04, depth: 0.26, position: '0 0.02 -0.18' });
-    make('a-box', { color: '#5a3b22', width: 0.05, height: 0.13, depth: 0.06, position: '0 -0.1 0.04', rotation: '20 0 0' });
-    make('a-box', { color: '#11ff88', width: 0.012, height: 0.02, depth: 0.012, position: '0 0.07 -0.05' });
+    const METAL = 'color: #3a4046; metalness: 0.85; roughness: 0.35';
+    const DARK  = 'color: #23272b; metalness: 0.8; roughness: 0.4';
+    const GRIP  = 'color: #1c1f22; metalness: 0.1; roughness: 0.95';
+    // The gun "points" forward (toward -z). Built from several shaped parts.
+    make('a-box',      { width: 0.07, height: 0.085, depth: 0.24, position: '0 0 -0.02', material: METAL }); // receiver
+    make('a-box',      { width: 0.06, height: 0.045, depth: 0.27, position: '0 0.06 -0.04', material: DARK }); // slide
+    make('a-cylinder', { radius: 0.02, height: 0.18, position: '0 0.025 -0.22', rotation: '90 0 0', material: DARK }); // barrel
+    make('a-cylinder', { radius: 0.026, height: 0.02, position: '0 0.025 -0.31', rotation: '90 0 0', material: 'color: #15181a; metalness: 0.9; roughness: 0.3' }); // muzzle
+    make('a-box',      { width: 0.055, height: 0.13, depth: 0.07, position: '0 -0.1 0.05', rotation: '18 0 0', material: GRIP }); // grip
+    make('a-box',      { width: 0.045, height: 0.11, depth: 0.05, position: '0 -0.095 -0.04', material: DARK }); // magazine
+    make('a-torus',    { radius: 0.028, 'radius-tubular': 0.006, position: '0 -0.05 -0.02', rotation: '90 0 0', material: DARK }); // trigger guard
+    make('a-box',      { width: 0.01, height: 0.025, depth: 0.01, position: '0 -0.05 -0.02', material: 'color: #888; metalness: 0.9; roughness: 0.3' }); // trigger
+    make('a-box',      { width: 0.008, height: 0.012, depth: 0.008, position: '0 0.085 -0.16', material: DARK }); // front sight
+    make('a-sphere',   { radius: 0.006, position: '0 0.088 0.07', material: 'color: #19ff7a; emissive: #19ff7a; emissiveIntensity: 1' }); // rear sight dot
   },
 });
 
@@ -201,18 +210,25 @@ AFRAME.registerComponent('bird', {
       (parent || this.el).appendChild(e);
       return e;
     };
-    // body + head + beak
-    make('a-sphere', { color: '#5b6770', radius: 0.16, scale: '1.6 1 1' });
-    make('a-sphere', { color: '#5b6770', radius: 0.1, position: (this.data.dir > 0 ? 0.22 : -0.22) + ' 0.05 0' });
-    make('a-cone',   { color: '#f5a623', radius: 0.04, height: 0.12,
-                       position: (this.data.dir > 0 ? 0.34 : -0.34) + ' 0.05 0',
-                       rotation: '0 0 ' + (this.data.dir > 0 ? -90 : 90) });
-    // two wings that flap
-    this.wingL = make('a-box', { color: '#7a8893', width: 0.32, height: 0.02, depth: 0.18, position: '0 0.05 0.16' });
-    this.wingR = make('a-box', { color: '#7a8893', width: 0.32, height: 0.02, depth: 0.18, position: '0 0.05 -0.16' });
+    const FEATHER = 'color: #eef1f4; metalness: 0; roughness: 0.9';   // seagull white
+    const fwd = this.data.dir > 0 ? 1 : -1;
+    // body (egg-shaped) + head + tail + orange beak
+    make('a-sphere', { radius: 0.15, scale: '1.7 0.95 0.95', material: FEATHER });
+    make('a-sphere', { radius: 0.1, position: (fwd * 0.24) + ' 0.06 0', material: FEATHER });
+    make('a-cone',   { radius: 0.09, height: 0.34, position: (-fwd * 0.3) + ' 0.04 0',
+                       rotation: '0 0 ' + (fwd > 0 ? 90 : -90), scale: '1 1 0.4', material: 'color: #cfd6db; roughness: 0.9' });
+    make('a-cone',   { radius: 0.035, height: 0.13, position: (fwd * 0.38) + ' 0.05 0',
+                       rotation: '0 0 ' + (fwd > 0 ? -90 : 90), material: 'color: #f5a623; roughness: 0.6' });
+    // two swept-back wings that flap
+    this.wingL = make('a-cone', { radius: 0.1, height: 0.42, position: '0 0.06 0.2',
+                                  rotation: '90 0 0', scale: '1 1 0.18', material: 'color: #d7dde2; roughness: 0.9' });
+    this.wingR = make('a-cone', { radius: 0.1, height: 0.42, position: '0 0.06 -0.2',
+                                  rotation: '-90 0 0', scale: '1 1 0.18', material: 'color: #d7dde2; roughness: 0.9' });
     // string + the target it carries (the part YOU shoot)
-    make('a-cylinder', { color: '#cccccc', radius: 0.004, height: 0.5, position: '0 -0.28 0' });
-    this.target = make('a-sphere', { radius: CONFIG.targetRadius, position: '0 -0.62 0', target: '' });
+    make('a-cylinder', { color: '#bfae8a', radius: 0.004, height: 0.5, position: '0 -0.28 0' });
+    this.target = make('a-sphere', { radius: CONFIG.targetRadius, position: '0 -0.62 0', target: '',
+                                     material: 'metalness: 0.1; roughness: 0.5' });
+    this.el.setAttribute('shadow', 'cast: true; receive: false');
 
     // start just off one edge of the sky
     const s = CONFIG.sky;
@@ -361,5 +377,109 @@ AFRAME.registerComponent('shooting-range', {
     });
     bird.addEventListener('loaded', () => { this.birds++; });
     this.el.appendChild(bird);
+  },
+});
+
+
+/* ---- 6. EXTRA REALISM ---------------------------------------------------- */
+
+// Draw a texture onto a canvas (no image files needed) so wood/thatch look real.
+function drawTexture(ctx, type, size) {
+  if (type === 'wood') {
+    ctx.fillStyle = '#a9763f'; ctx.fillRect(0, 0, size, size);
+    for (let i = 0; i < 5; i++) {                       // plank gaps
+      const y = (i + 1) * size / 6;
+      ctx.fillStyle = 'rgba(60,35,15,0.55)'; ctx.fillRect(0, y - 1, size, 2);
+    }
+    for (let i = 0; i < 900; i++) {                     // grain streaks
+      ctx.strokeStyle = 'rgba(80,50,25,' + (0.05 + Math.random() * 0.15) + ')';
+      ctx.lineWidth = Math.random() * 1.5;
+      const y = Math.random() * size, len = 20 + Math.random() * 80, x = Math.random() * size;
+      ctx.beginPath(); ctx.moveTo(x, y); ctx.lineTo(x + len, y + (Math.random() - 0.5) * 4); ctx.stroke();
+    }
+  } else if (type === 'thatch') {
+    ctx.fillStyle = '#c6a046'; ctx.fillRect(0, 0, size, size);
+    for (let i = 0; i < 1600; i++) {                    // straws
+      ctx.strokeStyle = 'rgba(110,80,25,' + (0.1 + Math.random() * 0.3) + ')';
+      ctx.lineWidth = 1 + Math.random();
+      const x = Math.random() * size, y = Math.random() * size, len = 14 + Math.random() * 26;
+      ctx.beginPath(); ctx.moveTo(x, y); ctx.lineTo(x + (Math.random() - 0.5) * 6, y + len); ctx.stroke();
+    }
+  }
+}
+
+// "paint" component: builds a canvas texture and lays it on the entity's mesh.
+AFRAME.registerComponent('paint', {
+  schema: { type: { default: 'wood' }, repeat: { default: 1 } },
+  init: function () {
+    const size = 256;
+    const c = document.createElement('canvas'); c.width = c.height = size;
+    drawTexture(c.getContext('2d'), this.data.type, size);
+    const tex = new THREE.CanvasTexture(c);
+    tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
+    tex.repeat.set(this.data.repeat, this.data.repeat);
+    if (THREE.SRGBColorSpace) tex.colorSpace = THREE.SRGBColorSpace;
+    const apply = () => {
+      const mesh = this.el.getObject3D('mesh');
+      if (mesh && mesh.material) { mesh.material.map = tex; mesh.material.needsUpdate = true; }
+    };
+    if (this.el.getObject3D('mesh')) apply();
+    else this.el.addEventListener('object3dset', apply);
+  },
+});
+
+// "ocean-waves": a big ring of water whose points bob up and down like waves.
+AFRAME.registerComponent('ocean-waves', {
+  schema: { color: { default: '#1592b0' }, amp: { default: 0.12 }, speed: { default: 1 } },
+  init: function () {
+    const geo = new THREE.RingGeometry(15, 150, 90, 12);
+    geo.rotateX(-Math.PI / 2);                          // lay it flat
+    this.base = geo.attributes.position.array.slice();  // remember the calm shape
+    const mat = new THREE.MeshStandardMaterial({
+      color: new THREE.Color(this.data.color),
+      metalness: 0.5, roughness: 0.2, flatShading: true,
+      transparent: true, opacity: 0.92, side: THREE.DoubleSide,
+    });
+    this.mesh = new THREE.Mesh(geo, mat);
+    this.el.setObject3D('mesh', this.mesh);
+  },
+  tick: function (time) {
+    const t = time * 0.001 * this.data.speed;
+    const pos = this.mesh.geometry.attributes.position;
+    const arr = pos.array, base = this.base, amp = this.data.amp;
+    for (let i = 0; i < arr.length; i += 3) {
+      const x = base[i], z = base[i + 2];
+      arr[i + 1] = Math.sin(x * 0.3 + t) * amp + Math.cos(z * 0.4 + t * 0.8) * amp;
+    }
+    pos.needsUpdate = true;                              // flatShading re-lights the facets for us
+  },
+});
+
+// "palm-tree": a leaning trunk topped with drooping fronds and a few coconuts.
+AFRAME.registerComponent('palm-tree', {
+  init: function () {
+    const make = (geo, attrs) => {
+      const e = document.createElement(geo);
+      for (const k in attrs) e.setAttribute(k, attrs[k]);
+      this.el.appendChild(e);
+      return e;
+    };
+    make('a-cylinder', { 'radius-top': 0.12, 'radius-bottom': 0.2, height: 3.6, position: '0 1.8 0',
+                         rotation: '0 0 6', paint: 'type: wood; repeat: 3',
+                         material: 'color: #9c6b3f; roughness: 0.9', shadow: 'cast: true' });
+    const crownY = 3.55, crownX = 0.38;                 // top of the (leaning) trunk
+    for (let i = 0; i < 7; i++) {                        // a ring of fronds
+      const ang = i * (360 / 7);
+      const greens = ['#2f8f3a', '#37a043', '#2a7d33'];
+      make('a-cone', { radius: 0.16, height: 1.7, position: crownX + ' ' + crownY + ' 0',
+                       rotation: '-72 ' + ang + ' 0', scale: '1 1 0.12',
+                       material: 'color: ' + greens[i % 3] + '; roughness: 0.85; side: double',
+                       shadow: 'cast: true' });
+    }
+    ['0.12 0.1', '-0.05 0.16', '0.16 -0.08'].forEach((xz) => {  // coconuts
+      const p = xz.split(' ');
+      make('a-sphere', { radius: 0.09, position: (crownX + parseFloat(p[0])) + ' ' + (crownY - 0.1) + ' ' + p[1],
+                         material: 'color: #5a3a22; roughness: 0.8' });
+    });
   },
 });

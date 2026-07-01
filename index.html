@@ -5,82 +5,93 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>VR Beach Shooting Gallery</title>
 
-  <!-- A-Frame: the free VR toolkit that does all the hard 3D + headset work. -->
+  <!-- A-Frame: the free VR toolkit that does the 3D + headset work. -->
   <script src="https://aframe.io/releases/1.6.0/aframe.min.js"></script>
+  <!-- Environment add-on: makes a real physical SKY + SUN + FOG + SHADOWS. -->
+  <script src="https://unpkg.com/aframe-environment-component@1.5.0/dist/aframe-environment-component.min.js"></script>
 
-  <!-- Our own game code: sounds, gun, birds, targets and score. -->
-  <script src="js/game.js"></script>
+  <!-- Our own game code: sounds, gun, birds, targets, water, palms, score. -->
+  <script src="js/game.js?v=2"></script>
 </head>
 <body>
-  <!-- The whole VR world. A-Frame adds the "Enter VR" button by itself, so on
-       the Quest you just tap it to put the game on your face. -->
-  <a-scene shooting-range background="color: #bfe7f5">
+  <!-- renderer settings = nicer colors + film-style tone mapping = way more real.
+       The shadow setting makes soft, believable shadows. -->
+  <a-scene shooting-range
+           renderer="colorManagement: true; toneMapping: ACESFilmic; antialias: true; exposure: 1.1"
+           shadow="type: pcfsoft">
 
-    <!-- ===== LIGHTS ===== -->
-    <a-entity light="type: ambient; intensity: 0.9"></a-entity>
-    <a-entity light="type: directional; intensity: 0.6" position="3 5 1"></a-entity>
+    <!-- ===== SKY, SUN, FOG, SAND & SHADOWS (all from the environment add-on) ===== -->
+    <a-entity environment="skyType: atmosphere; sunPosition: 0.7 0.45 -0.55;
+                           lighting: distant; shadow: true; shadowSize: 14;
+                           fog: 0.35; ground: flat;
+                           groundColor: #e4d2a0; groundColor2: #d6bd80;
+                           groundTexture: walkernoise; grid: none; dressing: none"></a-entity>
 
-    <!-- ===== SKY, SUN, SAND & OCEAN ===== -->
-    <a-sky color="#bfe7f5"></a-sky>
-    <a-sphere position="-7 9 -18" radius="1.6" color="#fff3b0"
-              material="emissive: #fff3b0; emissiveIntensity: 0.8"></a-sphere>
+    <!-- ===== OCEAN (animated waves) + a foamy shoreline ring ===== -->
+    <a-entity ocean-waves="color: #1aa0bf; amp: 0.12" position="0 0.02 0"></a-entity>
+    <a-ring rotation="-90 0 0" radius-inner="14.6" radius-outer="15.7" position="0 0.05 0"
+            material="color: #dff6f4; roughness: 1; metalness: 0"></a-ring>
 
-    <!-- sandy beach all around -->
-    <a-circle rotation="-90 0 0" radius="60" color="#ecdca6"></a-circle>
-    <!-- the ocean: a big ring of blue past the sand, gently bobbing like waves -->
-    <a-ring rotation="-90 0 0" radius-inner="16" radius-outer="80" position="0 0.02 0" color="#1f7fb8"
-            animation="property: position; to: 0 0.12 0; dir: alternate; loop: true; dur: 2600; easing: easeInOutSine"></a-ring>
-    <!-- a lighter strip of foam where the water meets the sand -->
-    <a-ring rotation="-90 0 0" radius-inner="15.4" radius-outer="16.4" position="0 0.03 0" color="#bfe9ef"></a-ring>
+    <!-- a little sailboat out on the water, gently bobbing -->
+    <a-entity position="-10 0.15 -13" rotation="0 28 0"
+              animation="property: position; to: -10 0.45 -13; dir: alternate; loop: true; dur: 2400; easing: easeInOutSine">
+      <a-box width="2.4" height="0.5" depth="0.95" position="0 0.2 0" material="color: #8a4f2c; roughness: 0.8" shadow="cast: true"></a-box>
+      <a-box width="2.0" height="0.25" depth="0.7" position="0 0.45 0" material="color: #b07a45; roughness: 0.8"></a-box>
+      <a-cylinder radius="0.04" height="2.6" position="0 1.6 0" material="color: #6b4a2c"></a-cylinder>
+      <a-triangle vertex-a="0 2.7 0.05" vertex-b="0 0.6 0.05" vertex-c="1.4 0.9 0.05"
+                  material="color: #f4f4f4; roughness: 0.8; side: double"></a-triangle>
+    </a-entity>
+
+    <!-- a couple of rocks near the shore -->
+    <a-sphere position="4.5 0.05 -6.5" radius="0.5" scale="1 0.6 1.2" material="color: #7d756b; roughness: 1" shadow="cast: true"></a-sphere>
+    <a-sphere position="-5.2 0.05 -5.5" radius="0.35" scale="1.2 0.6 1" material="color: #6f675d; roughness: 1" shadow="cast: true"></a-sphere>
 
     <!-- ===== THE CABANA (a tiki hut you stand in) ===== -->
-    <!-- wooden deck/platform under your feet -->
-    <a-box position="0 0.06 0" width="5" height="0.12" depth="5" color="#b5814e"></a-box>
-    <!-- 4 corner posts -->
-    <a-box position="2.2 1.3 -2.2"  width="0.16" height="2.6" depth="0.16" color="#7a5230"></a-box>
-    <a-box position="-2.2 1.3 -2.2" width="0.16" height="2.6" depth="0.16" color="#7a5230"></a-box>
-    <a-box position="2.2 1.3 2.2"   width="0.16" height="2.6" depth="0.16" color="#7a5230"></a-box>
-    <a-box position="-2.2 1.3 2.2"  width="0.16" height="2.6" depth="0.16" color="#7a5230"></a-box>
-    <!-- thatched roof (a 4-sided pyramid = a cone with 4 sides) -->
-    <a-cone position="0 3.1 0" radius-bottom="3.9" radius-top="0" height="1.3"
-            segments-radial="4" rotation="0 45 0" color="#cba24c"></a-cone>
+    <!-- wooden plank deck under your feet -->
+    <a-box position="0 0.07 0" width="5" height="0.14" depth="5" paint="type: wood; repeat: 5"
+           material="color: #b5894f; roughness: 0.85" shadow="cast: true; receive: true"></a-box>
+    <!-- bamboo corner posts -->
+    <a-cylinder position="2.2 1.35 -2.2"  radius="0.1" height="2.6" paint="type: wood; repeat: 2" material="color: #b89a5c; roughness: 0.85" shadow="cast: true"></a-cylinder>
+    <a-cylinder position="-2.2 1.35 -2.2" radius="0.1" height="2.6" paint="type: wood; repeat: 2" material="color: #b89a5c; roughness: 0.85" shadow="cast: true"></a-cylinder>
+    <a-cylinder position="2.2 1.35 2.2"   radius="0.1" height="2.6" paint="type: wood; repeat: 2" material="color: #b89a5c; roughness: 0.85" shadow="cast: true"></a-cylinder>
+    <a-cylinder position="-2.2 1.35 2.2"  radius="0.1" height="2.6" paint="type: wood; repeat: 2" material="color: #b89a5c; roughness: 0.85" shadow="cast: true"></a-cylinder>
+    <!-- thatched roof: two stacked straw cones -->
+    <a-cone position="0 3.0 0" radius-bottom="4.0" radius-top="0" height="1.1" segments-radial="10"
+            paint="type: thatch; repeat: 4" material="color: #c6a046; roughness: 0.9" shadow="cast: true"></a-cone>
+    <a-cone position="0 3.55 0" radius-bottom="2.6" radius-top="0" height="0.9" segments-radial="10"
+            paint="type: thatch; repeat: 3" material="color: #cda94e; roughness: 0.9" shadow="cast: true"></a-cone>
 
     <!-- ===== PALM TREES ===== -->
-    <a-entity position="-6 0 -2">
-      <a-cylinder radius="0.16" height="3.2" position="0 1.6 0" color="#9c6b3f"></a-cylinder>
-      <a-sphere position="0 3.2 0" radius="0.95" color="#2f8f3a" scale="1 0.5 1"></a-sphere>
-    </a-entity>
-    <a-entity position="6.5 0 -4" rotation="0 30 0">
-      <a-cylinder radius="0.18" height="3.6" position="0 1.8 0" color="#9c6b3f"></a-cylinder>
-      <a-sphere position="0 3.6 0" radius="1.05" color="#33a043" scale="1 0.5 1"></a-sphere>
-    </a-entity>
+    <a-entity palm-tree position="-6.5 0 -2"  rotation="0 20 0"></a-entity>
+    <a-entity palm-tree position="6.8 0 -4"   rotation="0 -120 0" scale="1.15 1.15 1.15"></a-entity>
+    <a-entity palm-tree position="3 0 6"      rotation="0 70 0" scale="0.9 0.9 0.9"></a-entity>
 
-    <!-- ===== THE GUN STAND (where the gun waits for you to grab it) ===== -->
-    <a-box position="0.4 0.45 -0.7" width="0.4" height="0.78" depth="0.35" color="#8a5a3b"></a-box>
-    <a-entity id="gunOnStand" gun-model position="0.4 0.92 -0.7" rotation="-12 0 0"></a-entity>
+    <!-- ===== THE GUN STAND (where the gun waits) ===== -->
+    <a-box position="0.4 0.45 -0.7" width="0.4" height="0.78" depth="0.35" paint="type: wood; repeat: 2"
+           material="color: #8a5a3b; roughness: 0.85" shadow="cast: true; receive: true"></a-box>
+    <a-entity id="gunOnStand" gun-model position="0.4 0.93 -0.7" rotation="-12 0 0" shadow="cast: true"></a-entity>
 
-    <!-- ===== FLOATING TEXT (score, ammo, hint) ===== -->
-    <a-text id="scoreText" value="Score: 0" align="center" position="0 4.0 -6" width="14" color="#ffffff"></a-text>
-    <a-text id="ammoText"  value="Ammo: 6 / 6" align="center" position="0 3.5 -6" width="11" color="#ffe48a"></a-text>
-    <a-text id="hintText"  value="Squeeze the GRIP button to grab the gun!" align="center"
-            position="0 0.7 -4" width="6" color="#ffffff"></a-text>
+    <!-- ===== FLOATING TEXT (score, ammo, hint) on a wooden sign ===== -->
+    <a-entity position="0 3.85 -6">
+      <a-box width="4.6" height="1.25" depth="0.1" material="color: #6b4423; roughness: 0.9" paint="type: wood; repeat: 3"></a-box>
+      <a-text id="scoreText" value="Score: 0" align="center" position="0 0.28 0.07" width="9" color="#fff7e0"></a-text>
+      <a-text id="ammoText"  value="Ammo: 6 / 6" align="center" position="0 -0.28 0.07" width="7" color="#ffd479"></a-text>
+    </a-entity>
+    <a-text id="hintText" value="Squeeze the GRIP button to grab the gun!" align="center"
+            position="0 0.85 -3.4" width="5" color="#ffffff"></a-text>
 
     <!-- ===== THE PLAYER (head + two hands move together) ===== -->
     <a-entity id="rig" position="0 0 0">
       <a-camera position="0 1.6 0"></a-camera>
 
-      <!-- RIGHT HAND = the gun hand.
-           laser-controls = controller + a laser sight beam.
-           raycaster = the beam only notices things tagged .target. -->
+      <!-- RIGHT HAND = the gun hand. laser-controls = controller + laser sight. -->
       <a-entity id="gun"
                 laser-controls="hand: right"
                 raycaster="objects: .target; far: 60"
-                line="color: #ff3b3b; opacity: 0.55">
-        <!-- the gun you hold (hidden until you grab it with the grip) -->
+                line="color: #ff3b3b; opacity: 0.5">
         <a-entity id="gunInHand" gun-model visible="false" position="0 -0.02 -0.02"></a-entity>
-        <!-- the muzzle flash, off until you fire -->
-        <a-sphere id="muzzle" visible="false" position="0 0 -0.34" radius="0.05"
-                  color="#ffd34d" material="emissive: #ffae00; emissiveIntensity: 1"></a-sphere>
+        <a-sphere id="muzzle" visible="false" position="0 0.025 -0.34" radius="0.05"
+                  material="color: #ffd34d; emissive: #ffae00; emissiveIntensity: 1"></a-sphere>
       </a-entity>
 
       <!-- LEFT HAND: just shows the controller -->
